@@ -12,10 +12,11 @@ export class Mouse extends Container {
   // private tailAmplitude: number = 10;
 
   private isMoving: boolean = false;
-  private lastX: number = 0;
-  private lastY: number = 0;
-  private targetRotation: number = 0;
   private rotationSpeed: number = 0.1; 
+
+  private targetX: number = 0;
+  private targetY: number = 0;
+  private moveSpeed: number = 5; 
 
   constructor() {
     super();
@@ -28,8 +29,9 @@ export class Mouse extends Container {
     this.readyPromise = this.loadTextures();
     this.setupDisplayHierarchy();
 
-    this.lastX = this.x;
-    this.lastY = this.y;
+    this.targetX = this.x;
+    this.targetY = this.y;
+    
   }
 
   private async loadTextures(): Promise<void> {
@@ -49,6 +51,11 @@ export class Mouse extends Container {
     } catch (err) {
       console.error("Failed to load mouse textures", err);
     }
+  }
+
+  public setTarget(x: number, y: number): void {
+    this.targetX = x;
+    this.targetY = y;
   }
 
   public async waitForTextures() {
@@ -75,31 +82,25 @@ export class Mouse extends Container {
   }
 
   public update(deltaTime: number) {
-    // Skip if not moving
-    if (!this.isMoving || (this.x === this.lastX && this.y === this.lastY)) {
-      return;
+    if (!this.isMoving) return;
+
+    // Smoothly move towards target
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Stop if very close to target
+    if (distance > 1) {
+      const angle = Math.atan2(dy, dx);
+      const speed = this.moveSpeed * deltaTime;
+
+      this.x += Math.cos(angle) * speed;
+      this.y += Math.sin(angle) * speed;
+
+      // Update rotation to face direction of movement
+      const angleDifference = angle - this.rotation;
+      const normalizedDelta = ((angleDifference + Math.PI) % (2 * Math.PI)) - Math.PI;
+      this.rotation += normalizedDelta * this.rotationSpeed;
     }
-
-    const dx = this.x - this.lastX;
-    const dy = this.y - this.lastY;
-
-    if (dx !== 0 || dy !== 0) {
-      // Calculate target angle in radians
-      this.targetRotation = Math.atan2(dy, dx);
-    }
-
-    // Smoothly interpolate rotation
-    const angleDifference = this.targetRotation - this.rotation;
-
-    // Normalize angle difference to [-π, π]
-    const normalizedDelta = ((angleDifference + Math.PI) % (2 * Math.PI)) - Math.PI;
-
-    // Apply rotation increment based on speed
-    this.rotation += normalizedDelta * this.rotationSpeed;
-
-    // Update last position
-    this.lastX = this.x;
-    this.lastY = this.y;
   }
-
 }

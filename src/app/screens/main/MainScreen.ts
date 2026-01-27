@@ -42,7 +42,6 @@ export class MainScreen extends Container {
   private targetX: number = 0;
   private targetY: number = 0;
   private followMouseMode: boolean = false;
-  private cursorDot: Graphics;
   private catchText: Text;
 
   constructor() {
@@ -85,19 +84,16 @@ export class MainScreen extends Container {
     this.followModeButton = new FollowModeButton();
     this.addChild(this.followModeButton);
     this.followModeButton.on("toggle", (isActive: boolean) => {
-      this.targetX = this.mainContainer.x;
-      this.targetY = this.mainContainer.y;
+      this.mouse.x = this.mainContainer.x;
+      this.mouse.y = this.mainContainer.y;
+      this.cat.x = 0;
+      this.cat.y = 0;
       this.followMouseMode = isActive;
       if (this.followMouseMode) {
         this.isMoving = false;
         this.cat.stopMoving();
       }
     });
-
-    const cursorDot = new Graphics();
-    cursorDot.name = "cursorDot";
-    this.addChild(cursorDot);
-    this.cursorDot = cursorDot;
 
     this.catchText = new Text("поймал!", {
       fontFamily: "Arial",
@@ -130,7 +126,7 @@ export class MainScreen extends Container {
       this.targetX = event.global.x - this.mainContainer.x;
       this.targetY = event.global.y - this.mainContainer.y;
       
-      this.mouse.position.set(this.targetX, this.targetY);
+      this.mouse.setTarget(this.targetX, this.targetY);
       this.mouse.alpha = 1;
       this.mouse.startMoving();
       // console.log('event.global.y: ', event.global.y);
@@ -158,7 +154,7 @@ export class MainScreen extends Container {
     const deltaTime = 1; // Упрощённо. Можно использовать engine().ticker.deltaMS
 
     if (this.followMouseMode) {
-      this.updateCatMovementToTarget(deltaTime);
+      this.updateCatMovementToMouse(deltaTime);
     } else {
       this.updateCatWithKeyboard(deltaTime);
     }
@@ -167,27 +163,29 @@ export class MainScreen extends Container {
     this.mouse.update(deltaTime);
   }
 
-  private updateCatMovementToTarget(deltaTime: number) {
+  private updateCatMovementToMouse(deltaTime: number) {
+    // Use the actual position of the mouse character
+    const mouseX = this.mouse.x;
+    const mouseY = this.mouse.y;
+
     const headOffset = 90;
-    // Определяем направление взгляда кота (зависит от scale.x)
     const facingRight = this.cat.scale.x > 0;
     const headX = this.cat.x + (facingRight ? headOffset : -headOffset);
-    const headY = this.cat.y; // предполагаем, что голова на той же высоте
+    const headY = this.cat.y;
 
-    const dx = this.targetX - headX;
-    const dy = this.targetY - headY;
+    const dx = mouseX - headX;
+    const dy = mouseY - headY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance > 15) {
+    // Stop close to the mouse (e.g., within 30px)
+    const stoppingDistance = 30;
+    if (distance > stoppingDistance) {
       const angle = Math.atan2(dy, dx);
       const speed = this.moveSpeed * deltaTime;
       this.cat.x += Math.cos(angle) * speed;
       this.cat.y += Math.sin(angle) * speed;
 
-      // Поворот тела в сторону движения
-      // this.cat.rotation = angle;
-
-      // Масштаб для "лица" вперёд (если используется)
+      // Flip cat based on direction
       if (Math.cos(angle) < 0) {
         this.cat.scale.x = -(this.catBaseScale);
       } else {
@@ -199,19 +197,20 @@ export class MainScreen extends Container {
         this.cat.startMoving();
       }
 
-      // Скрываем текст, если он был
-      this.catchText.alpha = 0;
+      this.catchText.alpha = 0; // Hide catch text while moving
     } else {
       if (this.isMoving) {
         this.isMoving = false;
         this.cat.stopMoving();
       }
 
-      // Кот достиг цели — "поймал!"
+      // Cat caught the mouse!
       if (this.followMouseMode) {
         this.showCatchMessage();
         this.followMouseMode = false;
-        this.followModeButton.setActive(false); // обновляем кнопку
+        this.followModeButton.setActive(false);
+        this.mouse.stopMoving();  
+        // this.mouse.alpha = 0; // Optional: hide mouse after caught
       }
     }
   }
@@ -285,6 +284,10 @@ export class MainScreen extends Container {
       case "ArrowDown":
         event.preventDefault();
         animate(this.cat, { y: this.groundY }, { duration: 0.5, ease: "easeOut" });
+        return;
+      case " ":
+        event.preventDefault();
+        this.followModeButton.emit("toggle", !this.followMouseMode);
         return;
       default:
         return;
