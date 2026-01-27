@@ -6,8 +6,8 @@ export class CatBasik extends Container {
     head: "main/cat-basik/head.png",
     body: "main/cat-basik/body.png",
     tail: "main/cat-basik/tail.png",
-    arm:  "main/cat-basik/arm.png",
-    leg:  "main/cat-basik/leg.png",
+    arm: "main/cat-basik/arm.png",
+    leg: "main/cat-basik/leg.png",
   };
   private readyPromise: Promise<void>;
 
@@ -17,7 +17,6 @@ export class CatBasik extends Container {
 
   private isMoving: boolean = false;
   private legAnimationOffset: number = 0;
-
 
   constructor() {
     super();
@@ -69,12 +68,14 @@ export class CatBasik extends Container {
   }
 
   private setupDisplayHierarchy(): void {
-    const { tail, rightArm, leftLeg, rightLeg, body, leftArm, head } = this.bodyParts;
+    const { tail, rightArm, leftLeg, rightLeg, body, leftArm, head } =
+      this.bodyParts;
     this.addChild(tail, rightArm, leftLeg, rightLeg, body, leftArm, head);
   }
 
   private async draw() {
-    const { head, body, tail, leftArm, rightArm, leftLeg, rightLeg } = this.bodyParts;
+    const { head, body, tail, leftArm, rightArm, leftLeg, rightLeg } =
+      this.bodyParts;
 
     head.position.set(-20, -140);
     body.position.set(0, 0);
@@ -103,15 +104,18 @@ export class CatBasik extends Container {
   public update(deltaTime: number) {
     // Анимация хвоста
     this.tailAngle += this.tailSpeed;
-    this.bodyParts.tail.rotation = Math.sin(this.tailAngle) * (this.tailAmplitude * Math.PI / 180);
+    this.bodyParts.tail.rotation =
+      Math.sin(this.tailAngle) * ((this.tailAmplitude * Math.PI) / 180);
 
     // Анимация ног при движении
     if (this.isMoving) {
       this.legAnimationOffset += 0.05 * deltaTime;
 
       const swingAmount = 0.1;
-      this.bodyParts.leftLeg.rotation = Math.sin(this.legAnimationOffset) * swingAmount;
-      this.bodyParts.rightLeg.rotation = Math.sin(this.legAnimationOffset + Math.PI) * swingAmount;
+      this.bodyParts.leftLeg.rotation =
+        Math.sin(this.legAnimationOffset) * swingAmount;
+      this.bodyParts.rightLeg.rotation =
+        Math.sin(this.legAnimationOffset + Math.PI) * swingAmount;
     }
   }
 }

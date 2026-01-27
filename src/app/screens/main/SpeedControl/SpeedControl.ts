@@ -22,43 +22,43 @@ export class SpeedControl extends Graphics {
     this.setupListeners();
   }
 
-    private draw() {
+  private draw() {
     this.clear();
     const buttonSize = 40;
     const padding = 10;
 
     // Кнопка "-"
     this.rect(-buttonSize - padding, -buttonSize / 2, buttonSize, buttonSize)
-        .fill({ color: 0xff6666, alpha: 1 })
-        .stroke({ color: 0x000000, width: 2 });
+      .fill({ color: 0xff6666, alpha: 1 })
+      .stroke({ color: 0x000000, width: 2 });
 
     // Горизонтальная линия "-"
     this.moveTo(-buttonSize - padding + 10, 0)
-        .lineTo(-buttonSize - padding + 30, 0)
-        .stroke({ color: 0x000000, width: 3 });
+      .lineTo(-buttonSize - padding + 30, 0)
+      .stroke({ color: 0x000000, width: 3 });
 
     // Кнопка "+"
     this.rect(buttonSize + padding, -buttonSize / 2, buttonSize, buttonSize)
-        .fill({ color: 0x66ff66, alpha: 1 })
-        .stroke({ color: 0x000000, width: 2 });
+      .fill({ color: 0x66ff66, alpha: 1 })
+      .stroke({ color: 0x000000, width: 2 });
 
     // Вертикальная и горизонтальная линии "+"
     this.moveTo(buttonSize + padding + 20, 10)
-        .lineTo(buttonSize + padding + 20, -10)
-        .moveTo(buttonSize + padding + 10, 0)
-        .lineTo(buttonSize + padding + 30, 0)
-        .stroke({ color: 0x000000, width: 3 });
+      .lineTo(buttonSize + padding + 20, -10)
+      .moveTo(buttonSize + padding + 10, 0)
+      .lineTo(buttonSize + padding + 30, 0)
+      .stroke({ color: 0x000000, width: 3 });
 
     // Центральный текст
     this.valueText.text = this.currentValue.toString();
     this.valueText.position.set(0, 0);
-    
+
     // Удаляем предыдущий текст, если он был
     const oldText = this.getChildByName("valueText");
     if (oldText) this.removeChild(oldText);
-        this.valueText.name = "valueText";
-        this.addChild(this.valueText);
-    }
+    this.valueText.name = "valueText";
+    this.addChild(this.valueText);
+  }
 
   private setupListeners() {
     this.eventMode = "static";
@@ -93,7 +93,7 @@ export class SpeedControl extends Graphics {
   }
 
   private updateDisplay() {
-    this.valueText.text = 'speed: ' + this.currentValue.toString();
+    this.valueText.text = "speed: " + this.currentValue.toString();
     this.draw(); // перерисовываем графику (например, чтобы обновить состояние при анимации)
   }
 
@@ -106,7 +106,7 @@ export class SpeedControl extends Graphics {
     return this.currentValue;
   }
 
-  public resize(screenWidth: number, screenHeight: number) {
+  public resize(screenWidth: number) {
     const marginX = 200;
     const marginY = 30;
     this.position.set(screenWidth - marginX, marginY);

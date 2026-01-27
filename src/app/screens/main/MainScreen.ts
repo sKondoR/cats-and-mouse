@@ -1,5 +1,11 @@
 import { animate } from "motion";
-import { Container, Graphics, Rectangle, Text } from "pixi.js";
+import {
+  Container,
+  FederatedPointerEvent,
+  Graphics,
+  Rectangle,
+  Text,
+} from "pixi.js";
 
 import { engine } from "../../getEngine";
 import { SpeedControl } from "./SpeedControl/SpeedControl";
@@ -7,7 +13,6 @@ import { FollowModeButton } from "./FollowModeButton/FollowModeButton";
 import { CatBasik } from "./CatBasik/CatBasik";
 import { Carpet } from "./Carpet/Carpet";
 import { Mouse } from "./Mouse/Mouse";
-
 
 export class MainScreen extends Container {
   // private textures: Record<string, Sprite> = {};
@@ -75,7 +80,6 @@ export class MainScreen extends Container {
     this.addChild(border);
     this.borderGraphic = border;
 
-
     this.groundLine = new Graphics();
     this.groundLine.alpha = 0.5;
     this.mainContainer.addChild(this.groundLine);
@@ -121,11 +125,11 @@ export class MainScreen extends Container {
     await this.readyPromise;
   }
 
-  private handlePointerMove = (event: any) => {
+  private handlePointerMove = (event: FederatedPointerEvent) => {
     if (this.followMouseMode) {
       this.targetX = event.global.x - this.mainContainer.x;
       this.targetY = event.global.y - this.mainContainer.y;
-      
+
       this.mouse.setTarget(this.targetX, this.targetY);
       this.mouse.alpha = 1;
       this.mouse.startMoving();
@@ -135,7 +139,6 @@ export class MainScreen extends Container {
       //   this.targetY = this.mainContainer.height;
       //   this.updateCursorDot(event.global.x, this.mainContainer.height);
       // }
-      
     }
   };
 
@@ -187,7 +190,7 @@ export class MainScreen extends Container {
 
       // Flip cat based on direction
       if (Math.cos(angle) < 0) {
-        this.cat.scale.x = -(this.catBaseScale);
+        this.cat.scale.x = -this.catBaseScale;
       } else {
         this.cat.scale.x = this.catBaseScale;
       }
@@ -209,7 +212,7 @@ export class MainScreen extends Container {
         this.showCatchMessage();
         this.followMouseMode = false;
         this.followModeButton.setActive(false);
-        this.mouse.stopMoving();  
+        this.mouse.stopMoving();
         // this.mouse.alpha = 0; // Optional: hide mouse after caught
       }
     }
@@ -223,17 +226,19 @@ export class MainScreen extends Container {
     animate(
       this.catchText,
       { alpha: 1, y: this.catchText.y - 10 },
-      { duration: 0.3, ease: "easeOut" }
+      { duration: 0.3, ease: "easeOut" },
     ).finished.then(() => {
       setTimeout(() => {
-        animate(this.catchText, { alpha: 0 }, { duration: 0.5 }).finished.then(() => {
-          this.catchText.y = this.cat.y - 50; // сброс позиции Y после анимации
-        });
+        animate(this.catchText, { alpha: 0 }, { duration: 0.5 }).finished.then(
+          () => {
+            this.catchText.y = this.cat.y - 50; // сброс позиции Y после анимации
+          },
+        );
       }, 3000);
     });
   }
 
-  private updateCatWithKeyboard(_deltaTime: number) {
+  private updateCatWithKeyboard() {
     let dx = 0;
 
     if (this.keys.ArrowLeft) dx -= this.moveSpeed;
@@ -265,7 +270,7 @@ export class MainScreen extends Container {
     animate(
       this.cat.scale,
       { x: targetScaleX },
-      { duration: 0.2, ease: "easeOut" }
+      { duration: 0.2, ease: "easeOut" },
     );
   }
 
@@ -283,7 +288,11 @@ export class MainScreen extends Container {
         return;
       case "ArrowDown":
         event.preventDefault();
-        animate(this.cat, { y: this.groundY }, { duration: 0.5, ease: "easeOut" });
+        animate(
+          this.cat,
+          { y: this.groundY },
+          { duration: 0.5, ease: "easeOut" },
+        );
         return;
       case " ":
         event.preventDefault();
@@ -301,7 +310,9 @@ export class MainScreen extends Container {
       this.keys[key] = false;
     }
 
-    const anyMovementKeyPressed = ["ArrowLeft", "ArrowRight"].some((k) => this.keys[k]);
+    const anyMovementKeyPressed = ["ArrowLeft", "ArrowRight"].some(
+      (k) => this.keys[k],
+    );
     if (!anyMovementKeyPressed && this.isMoving) {
       this.isMoving = false;
       this.cat.stopMoving();
@@ -320,16 +331,20 @@ export class MainScreen extends Container {
     this.mainContainer.x = centerX;
     this.mainContainer.y = centerY;
 
-    this.mainContainer.hitArea = new Rectangle(-centerX, -centerY, width, height);
+    this.mainContainer.hitArea = new Rectangle(
+      -centerX,
+      -centerY,
+      width,
+      height,
+    );
     this.followModeButton.resize(width, height);
     this.resizeCarpet();
 
     this.borderGraphic.clear();
-    this.borderGraphic.rect(0, 0, width, height)
-     .stroke({
-        width: 80,
-        color: '#887849',
-      });
+    this.borderGraphic.rect(0, 0, width, height).stroke({
+      width: 80,
+      color: "#887849",
+    });
     this.borderGraphic.alpha = 1;
   }
 
@@ -337,7 +352,11 @@ export class MainScreen extends Container {
     engine().audio.bgm.play("main/sounds/bgm-main.mp3", { volume: 0.5 });
 
     this.cat.alpha = 0;
-    const animation = animate(this.cat, { alpha: 1 }, { duration: 0.3, delay: 0.75, ease: "backOut" });
+    const animation = animate(
+      this.cat,
+      { alpha: 1 },
+      { duration: 0.3, delay: 0.75, ease: "backOut" },
+    );
     await animation.finished;
 
     engine().ticker.add(this.tickerCallback);
@@ -357,10 +376,13 @@ export class MainScreen extends Container {
         duration: 0.2,
         ease: "easeOut",
         onComplete: () => {
-          animate(this.cat, { y: this.groundY }, { duration: 0.25, ease: "easeIn" });
+          animate(
+            this.cat,
+            { y: this.groundY },
+            { duration: 0.25, ease: "easeIn" },
+          );
         },
-      }
+      },
     );
   }
 }
-

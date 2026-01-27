@@ -22,10 +22,10 @@ export class Carpet extends Sprite {
 
   public resize(screenWidth: number, screenHeight: number): void {
     if (!this.texture || this.texture === Texture.EMPTY) {
-        this.x = screenWidth / 2;
-        this.y = screenHeight / 2;
-        return;       
-    };
+      this.x = screenWidth / 2;
+      this.y = screenHeight / 2;
+      return;
+    }
 
     const resource = this.texture.source;
     const aspectRatio = resource.width / resource.height;

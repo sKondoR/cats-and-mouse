@@ -12,11 +12,11 @@ export class Mouse extends Container {
   // private tailAmplitude: number = 10;
 
   private isMoving: boolean = false;
-  private rotationSpeed: number = 0.1; 
+  private rotationSpeed: number = 0.1;
 
   private targetX: number = 0;
   private targetY: number = 0;
-  private moveSpeed: number = 5; 
+  private moveSpeed: number = 5;
 
   constructor() {
     super();
@@ -31,7 +31,6 @@ export class Mouse extends Container {
 
     this.targetX = this.x;
     this.targetY = this.y;
-    
   }
 
   private async loadTextures(): Promise<void> {
@@ -99,7 +98,8 @@ export class Mouse extends Container {
 
       // Update rotation to face direction of movement
       const angleDifference = angle - this.rotation;
-      const normalizedDelta = ((angleDifference + Math.PI) % (2 * Math.PI)) - Math.PI;
+      const normalizedDelta =
+        ((angleDifference + Math.PI) % (2 * Math.PI)) - Math.PI;
       this.rotation += normalizedDelta * this.rotationSpeed;
     }
   }

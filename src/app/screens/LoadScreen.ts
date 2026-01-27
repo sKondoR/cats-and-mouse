@@ -30,7 +30,6 @@ export class LoadScreen extends Container {
     this.progressBar.y += -this.progressBar.height / 2;
 
     this.addChild(this.progressBar);
-
   }
 
   public onLoad(progress: number) {
