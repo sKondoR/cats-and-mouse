@@ -3,11 +3,11 @@ import { Sprite, Container, Assets } from "pixi.js";
 export class CatBasik extends Container {
   private bodyParts: Record<string, Sprite> = {};
   private readonly texturePaths: Record<string, string> = {
-    head: "main/cat-basik/head.png",
-    body: "main/cat-basik/body.png",
-    tail: "main/cat-basik/tail.png",
-    arm: "main/cat-basik/arm.png",
-    leg: "main/cat-basik/leg.png",
+    head: "/main/cat-basik/head.png",
+    body: "/main/cat-basik/body.png",
+    tail: "/main/cat-basik/tail.png",
+    arm: "/main/cat-basik/arm.png",
+    leg: "/main/cat-basik/leg.png",
   };
   private readyPromise: Promise<void>;
 

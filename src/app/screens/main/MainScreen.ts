@@ -15,12 +15,6 @@ import { Carpet } from "./Carpet/Carpet";
 import { Mouse } from "./Mouse/Mouse";
 
 export class MainScreen extends Container {
-  // private textures: Record<string, Sprite> = {};
-  // private readonly texturePaths: Record<string, string> = {
-  //   carpet: "main/carpet.png",
-  // };
-  // private readyPromise: Promise<void>;
-
   public static assetBundles = ["main"];
   public mainContainer: Container;
   private cat: CatBasik;

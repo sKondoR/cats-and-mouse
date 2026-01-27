@@ -3,7 +3,7 @@ import { Sprite, Container, Assets } from "pixi.js";
 export class Mouse extends Container {
   private bodyParts: Record<string, Sprite> = {};
   private readonly texturePaths: Record<string, string> = {
-    body: "main/mouse.png",
+    body: "/main/mouse.png",
   };
   private readyPromise: Promise<void>;
 
