@@ -55,7 +55,9 @@ export class CreationEngine extends Application {
     await Assets.loadBundle("preload");
 
     // List all existing bundles names
-    const allBundles = (manifest as AssetManifest).bundles.map((item) => item.name);
+    const allBundles = (manifest as AssetManifest).bundles.map(
+      (item) => item.name,
+    );
     // Start up background loading of all bundles
     Assets.backgroundLoadBundle(allBundles);
   }
