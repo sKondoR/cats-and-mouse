@@ -121,7 +121,7 @@ export class MainScreen extends Container {
     this.tickerCallback = () => this.update();
   }
 
-  private async loadTextures(): Promise<void> {
+  public async loadTextures(): Promise<void> {
     await this.readyPromise;
   }
 
