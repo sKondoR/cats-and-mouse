@@ -113,7 +113,7 @@ export class MainScreen extends Container {
     // Управление скоростью
     this.speedControl = new SpeedControl();
     this.addChild(this.speedControl);
-    this.speedControl.resize(engine().screen.width, engine().screen.height);
+    this.speedControl.resize(engine().screen.width);
     this.speedControl.on("speedChange", (newSpeed: number) => {
       this.moveSpeed = newSpeed;
     });
@@ -159,7 +159,7 @@ export class MainScreen extends Container {
     if (this.followMouseMode) {
       this.updateCatMovementToMouse(deltaTime);
     } else {
-      this.updateCatWithKeyboard(deltaTime);
+      this.updateCatWithKeyboard();
     }
 
     this.cat.update(deltaTime); // Внутренняя анимация кота (ноги, хвост)
@@ -337,7 +337,7 @@ export class MainScreen extends Container {
       width,
       height,
     );
-    this.followModeButton.resize(width, height);
+    this.followModeButton.resize(width);
     this.resizeCarpet();
 
     this.borderGraphic.clear();
