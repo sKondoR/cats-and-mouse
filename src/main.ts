@@ -16,7 +16,7 @@ setEngine(engine);
 (async () => {
   // Initialize the creation engine instance
   await engine.init({
-    background: "#1E1E1E",
+    background: "#E8CB76",
     resizeOptions: { minWidth: 768, minHeight: 1024, letterbox: false },
   });
 

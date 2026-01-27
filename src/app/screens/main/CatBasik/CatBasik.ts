@@ -9,7 +9,6 @@ export class CatBasik extends Container {
     arm:  "main/cat-basik/arm.png",
     leg:  "main/cat-basik/leg.png",
   };
-
   private readyPromise: Promise<void>;
 
   private tailAngle: number = 0;

@@ -1,16 +1,31 @@
 import { animate } from "motion";
-import { Container, Graphics, Rectangle, Sprite, Text, Texture } from "pixi.js";
+import { Container, Graphics, Rectangle, Text } from "pixi.js";
 
 import { engine } from "../../getEngine";
 import { SpeedControl } from "./SpeedControl/SpeedControl";
+import { FollowModeButton } from "./FollowModeButton/FollowModeButton";
 import { CatBasik } from "./CatBasik/CatBasik";
+import { Carpet } from "./Carpet/Carpet";
+import { Mouse } from "./Mouse/Mouse";
+
 
 export class MainScreen extends Container {
+  // private textures: Record<string, Sprite> = {};
+  // private readonly texturePaths: Record<string, string> = {
+  //   carpet: "main/carpet.png",
+  // };
+  // private readyPromise: Promise<void>;
+
   public static assetBundles = ["main"];
   public mainContainer: Container;
   private cat: CatBasik;
+  private mouse: Mouse;
   private groundLine: Graphics;
+  private followModeButton: FollowModeButton;
   private speedControl: SpeedControl;
+  private borderGraphic: Graphics;
+  private carpet: Carpet;
+  private readyPromise: Promise<void>;
 
   private moveSpeed = 3;
   private readonly jumpSpeed = 200;
@@ -27,28 +42,21 @@ export class MainScreen extends Container {
   private targetX: number = 0;
   private targetY: number = 0;
   private followMouseMode: boolean = false;
-  private followModeButton: Graphics;
   private cursorDot: Graphics;
   private catchText: Text;
 
   constructor() {
     super();
 
+    this.carpet = new Carpet();
+    this.carpet.alpha = 0;
+    this.addChild(this.carpet);
+    this.readyPromise = this.carpet.load().then(() => {
+      this.resizeCarpet();
+    });
+
     this.mainContainer = new Container();
     this.addChild(this.mainContainer);
-    
-    const texture = Texture.from("main/carpet");
-    const carpetSprite = new Sprite(texture);
-
-    // Scale and position to cover the entire screen
-    carpetSprite.anchor.set(0.5); // Center anchor
-    carpetSprite.x = 0; // Centered in mainContainer
-    carpetSprite.y = 0;
-
-    // Optional: scale to fit screen if needed
-    carpetSprite.width = engine().screen.width;
-    carpetSprite.height = engine().screen.height;
-    this.mainContainer.addChildAt(carpetSprite, 0);
 
     this.mainContainer.eventMode = "static";
     this.mainContainer.hitArea = null;
@@ -59,26 +67,30 @@ export class MainScreen extends Container {
     this.mainContainer.addChild(this.cat);
     this.cat.position.y = this.groundY;
 
+    this.mouse = new Mouse();
+    this.mouse.alpha = 0;
+    this.mouse.scale.set(this.catBaseScale);
+    this.mainContainer.addChild(this.mouse);
+
+    const border = new Graphics();
+    this.addChild(border);
+    this.borderGraphic = border;
+
+
     this.groundLine = new Graphics();
     this.groundLine.alpha = 0.5;
     this.mainContainer.addChild(this.groundLine);
 
     // Кнопка режима
-    this.followModeButton = new Graphics();
-    this.updateFollowModeButton();
+    this.followModeButton = new FollowModeButton();
     this.addChild(this.followModeButton);
-    this.followModeButton.eventMode = "static";
-    this.followModeButton.cursor = "pointer";
-    this.followModeButton.on("pointerdown", () => {
+    this.followModeButton.on("toggle", (isActive: boolean) => {
       this.targetX = this.mainContainer.x;
       this.targetY = this.mainContainer.y;
-      this.followMouseMode = !this.followMouseMode;
-      this.updateFollowModeButton();
+      this.followMouseMode = isActive;
       if (this.followMouseMode) {
-        // Отключаем движение с клавиатуры
         this.isMoving = false;
         this.cat.stopMoving();
-      } else {
       }
     });
 
@@ -89,8 +101,8 @@ export class MainScreen extends Container {
 
     this.catchText = new Text("поймал!", {
       fontFamily: "Arial",
-      fontSize: 24,
-      fill: 0xffcc00,
+      fontSize: 60,
+      fill: "#333333",
       fontWeight: "bold",
       align: "center",
     });
@@ -109,35 +121,19 @@ export class MainScreen extends Container {
     this.tickerCallback = () => this.update();
   }
 
-  private updateFollowModeButton() {
-    const size = 40;
-    const g = this.followModeButton;
-    g.clear();
-
-    if (this.followMouseMode) {
-      g.rect(-size / 2, -size / 2, size, size).fill({ color: 0x00ff00, alpha: 0.6 });
-      g.circle(0, 0, size * 0.3).fill({ color: 0x000000 });
-    } else {
-      g.rect(-size / 2, -size / 2, size, size).fill({ color: 0xff0000, alpha: 0.6 });
-      g.moveTo(-size * 0.3, -size * 0.3)
-        .lineTo(size * 0.3, size * 0.3)
-        .moveTo(size * 0.3, -size * 0.3)
-        .lineTo(-size * 0.3, size * 0.3)
-        .stroke({ color: 0x000000, width: 3 });
-    }
-
-    this.followModeButton.position.set(
-      engine().screen.width - size / 2 - 10,
-      size / 2 + 10
-    );
+  private async loadTextures(): Promise<void> {
+    await this.readyPromise;
   }
 
   private handlePointerMove = (event: any) => {
     if (this.followMouseMode) {
       this.targetX = event.global.x - this.mainContainer.x;
       this.targetY = event.global.y - this.mainContainer.y;
-      this.updateCursorDot(event.global.x, event.global.y);
-      console.log('event.global.y: ', event.global.y);
+      
+      this.mouse.position.set(this.targetX, this.targetY);
+      this.mouse.alpha = 1;
+      this.mouse.startMoving();
+      // console.log('event.global.y: ', event.global.y);
       // toDO: mouse's holes
       // if(event.global.y < 5) {
       //   this.targetY = this.mainContainer.height;
@@ -146,15 +142,6 @@ export class MainScreen extends Container {
       
     }
   };
-
-  private updateCursorDot(x: number, y: number) {
-    const dot = this.cursorDot;
-    dot.clear();
-    dot.circle(0, 0, 10)
-      .fill({ color: 0xff0000, alpha: 0.8 })
-      .stroke({ color: 0x000000, width: 1 });
-    dot.position.set(x, y);
-  }
 
   public prepare() {
     document.addEventListener("keydown", this.handleKeyDown);
@@ -177,6 +164,7 @@ export class MainScreen extends Container {
     }
 
     this.cat.update(deltaTime); // Внутренняя анимация кота (ноги, хвост)
+    this.mouse.update(deltaTime);
   }
 
   private updateCatMovementToTarget(deltaTime: number) {
@@ -223,7 +211,7 @@ export class MainScreen extends Container {
       if (this.followMouseMode) {
         this.showCatchMessage();
         this.followMouseMode = false;
-        this.updateFollowModeButton(); // обновляем кнопку
+        this.followModeButton.setActive(false); // обновляем кнопку
       }
     }
   }
@@ -317,6 +305,11 @@ export class MainScreen extends Container {
     }
   };
 
+  private resizeCarpet() {
+    if (!this.carpet.texture) return;
+    this.carpet.resize(engine().screen.width, engine().screen.height);
+  }
+
   public resize(width: number, height: number) {
     const centerX = width * 0.5;
     const centerY = height * 0.5;
@@ -325,7 +318,16 @@ export class MainScreen extends Container {
     this.mainContainer.y = centerY;
 
     this.mainContainer.hitArea = new Rectangle(-centerX, -centerY, width, height);
-    this.updateFollowModeButton();
+    this.followModeButton.resize(width, height);
+    this.resizeCarpet();
+
+    this.borderGraphic.clear();
+    this.borderGraphic.rect(0, 0, width, height)
+     .stroke({
+        width: 80,
+        color: '#887849',
+      });
+    this.borderGraphic.alpha = 1;
   }
 
   public async show(): Promise<void> {
@@ -336,6 +338,8 @@ export class MainScreen extends Container {
     await animation.finished;
 
     engine().ticker.add(this.tickerCallback);
+
+    animate(this.carpet, { alpha: 0.2 }, { duration: 0.1, ease: "linear" });
   }
 
   public async hide() {
