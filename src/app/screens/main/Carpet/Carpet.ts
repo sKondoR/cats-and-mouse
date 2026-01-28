@@ -2,7 +2,7 @@ import { Sprite, Texture } from "pixi.js";
 import { Assets } from "pixi.js";
 
 export class Carpet extends Sprite {
-  private static texturePath = "/main/carpet.png";
+  private static texturePath = "main/carpet.png";
 
   constructor() {
     super();
