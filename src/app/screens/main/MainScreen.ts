@@ -20,7 +20,6 @@ export class MainScreen extends Container {
   public mainContainer: Container;
   private cat: CatBasik;
   private mouse: Mouse;
-  private groundLine: Graphics;
   private followModeButton: FollowModeButton;
   private speedControl: SpeedControl;
   private borderGraphic: Graphics;
@@ -28,6 +27,7 @@ export class MainScreen extends Container {
   private readyPromise: Promise<void>;
 
   private lastSpacePressed = false;
+  private borderSize: number = 100;
 
   private moveSpeed = 3;
   private catBaseScale = 0.7;
@@ -46,7 +46,6 @@ export class MainScreen extends Container {
 
     // Инициализация ковра
     this.carpet = new Carpet();
-    this.carpet.alpha = 0;
     this.addChild(this.carpet);
     this.readyPromise = this.carpet.load().then(() => {
       this.resizeCarpet();
@@ -73,10 +72,6 @@ export class MainScreen extends Container {
     // Графика границы и линии земли
     this.borderGraphic = new Graphics();
     this.addChild(this.borderGraphic);
-
-    this.groundLine = new Graphics();
-    this.groundLine.alpha = 0.5;
-    this.mainContainer.addChild(this.groundLine);
 
     // Кнопка режима преследования мыши
     this.followModeButton = new FollowModeButton();
@@ -114,6 +109,30 @@ export class MainScreen extends Container {
   }
 
   /**
+   * Анимация появления экрана.
+   */
+  public async show(): Promise<void> {
+    engine().audio.bgm.play("main/sounds/bgm-main.mp3", { volume: 0.5 });
+
+    this.mainContainer.alpha = 0;
+    const animation = animate(
+      this.mainContainer,
+      { alpha: 1 },
+      { duration: 0.3, delay: 0.75, ease: "backOut" },
+    );
+
+    await Promise.all([animation.finished]);
+    engine().ticker.add(this.tickerCallback);
+  }
+
+  /**
+   * Скрытие экрана — останавливает тикер.
+   */
+  public async hide(): Promise<void> {
+    engine().ticker.remove(this.tickerCallback);
+  }
+
+  /**
    * Обработчик движения курсора — перемещает цель для кота в режиме слежения.
    */
   private handlePointerMove(event: FederatedPointerEvent): void {
@@ -123,7 +142,6 @@ export class MainScreen extends Container {
     this.targetY = event.global.y - this.mainContainer.y;
 
     this.mouse.setTarget(this.targetX, this.targetY);
-    this.mouse.alpha = 1;
     this.mouse.startMoving();
   }
 
@@ -178,6 +196,17 @@ export class MainScreen extends Container {
 
     this.cat.update(deltaTime);
     this.mouse.update(deltaTime);
+
+    const screenWidth = engine().screen.width;
+    const screenHeight = engine().screen.height;
+    const margin = this.borderSize; // Prevent from touching exact edge
+    const minX = -screenWidth / 2 + margin;
+    const maxX = screenWidth / 2 - margin;
+    const minY = -screenHeight / 2 + margin;
+    const maxY = screenHeight / 2 - margin;
+
+    this.mouse.x = Math.max(minX, Math.min(maxX, this.mouse.x));
+    this.mouse.y = Math.max(minY, Math.min(maxY, this.mouse.y));
   }
 
   /**
@@ -331,7 +360,7 @@ export class MainScreen extends Container {
     this.borderGraphic.clear();
     this.borderGraphic
       .rect(0, 0, width, height)
-      .stroke({ width: 80, color: "#887849" });
+      .stroke({ width: this.borderSize, color: "#887849" });
   }
 
   /**
@@ -340,37 +369,5 @@ export class MainScreen extends Container {
   private resizeCarpet(): void {
     if (!this.carpet.texture) return;
     this.carpet.resize(engine().screen.width, engine().screen.height);
-  }
-
-  /**
-   * Анимация появления экрана.
-   */
-  public async show(): Promise<void> {
-    engine().audio.bgm.play("main/sounds/bgm-main.mp3", { volume: 0.5 });
-
-    this.cat.alpha = 0;
-    this.mouse.alpha = 0;
-    const animation = animate(
-      this.cat,
-      { alpha: 1 },
-      { duration: 0.3, delay: 0.75, ease: "backOut" },
-    );
-    await animation.finished;
-    const animation2 = animate(
-      this.mouse,
-      { alpha: 1 },
-      { duration: 0.3, delay: 0.75, ease: "backOut" },
-    );
-    await animation2.finished;
-
-    engine().ticker.add(this.tickerCallback);
-    animate(this.carpet, { alpha: 0.2 }, { duration: 0.1, ease: "linear" });
-  }
-
-  /**
-   * Скрытие экрана — останавливает тикер.
-   */
-  public async hide(): Promise<void> {
-    engine().ticker.remove(this.tickerCallback);
   }
 }

@@ -7,7 +7,7 @@ export class Carpet extends Sprite {
   constructor() {
     super();
     this.texture = Texture.EMPTY;
-    this.alpha = 0.5;
+    this.alpha = 0.2;
     this.anchor.set(0.5);
   }
 
@@ -15,6 +15,7 @@ export class Carpet extends Sprite {
     try {
       const texture = await Assets.load(Carpet.texturePath);
       this.texture = texture;
+      console.log("Carpet textures loaded");
     } catch (err) {
       console.error("Failed to load carpet texture", err);
     }
