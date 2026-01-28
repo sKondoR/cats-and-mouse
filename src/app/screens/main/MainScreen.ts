@@ -223,7 +223,7 @@ export class MainScreen extends Container {
     this.cat.update(deltaTime);
     this.mouse.update(deltaTime);
 
-     this.constrainMouseToBounds();
+    this.constrainMouseToBounds();
   }
 
   private constrainMouseToBounds(): void {
@@ -244,9 +244,9 @@ export class MainScreen extends Container {
 
     const xLength = (width - 2 * this.holeSize) / 3;
     // дырки слева и справа
-    if (!this.isInRange(this.mouse.y, [-this.holeSize/2, this.holeSize])) {
+    if (!this.isInRange(this.mouse.y, [-this.holeSize / 2, this.holeSize])) {
       this.mouse.x = Math.max(minX, Math.min(maxX, this.mouse.x));
-    }  
+    }
     // мышь забежала в правую дырку
     if (this.mouse.x > x1 - teleportOffset) {
       this.mouse.x = x0 + returnOffset;
@@ -254,12 +254,20 @@ export class MainScreen extends Container {
     // мышь забежала в левую дырку
     if (this.mouse.x < x0 + teleportOffset) {
       this.mouse.x = x1 - returnOffset;
-    } 
+    }
 
     // дырки сверху и снизу
     if (
-      !(this.isInRange(this.mouse.x, [-xLength * 0.5 - this.holeSize, -xLength * 0.5]) ||
-      this.isInRange(this.mouse.x, [xLength * 0.5, xLength * 0.5 + this.holeSize]))
+      !(
+        this.isInRange(this.mouse.x, [
+          -xLength * 0.5 - this.holeSize,
+          -xLength * 0.5,
+        ]) ||
+        this.isInRange(this.mouse.x, [
+          xLength * 0.5,
+          xLength * 0.5 + this.holeSize,
+        ])
+      )
     ) {
       this.mouse.y = Math.max(minY, Math.min(maxY, this.mouse.y));
     }
@@ -270,7 +278,7 @@ export class MainScreen extends Container {
     // мышь забежала в верхнюю дырку
     if (this.mouse.y < y0 + teleportOffset) {
       this.mouse.y = y1 - returnOffset;
-    } 
+    }
   }
 
   /**
@@ -402,7 +410,7 @@ export class MainScreen extends Container {
     if (!this.carpet.texture) return;
     this.carpet.resize(engine().screen.width, engine().screen.height);
   }
-  
+
   private isInRange(value: number, range: [number, number]): boolean {
     return value >= range[0] && value <= range[1];
   }
