@@ -92,26 +92,6 @@ export class Border extends Graphics {
   public destroy(): void {
     super.destroy();
   }
-
-  // Геттеры и сеттеры (по желанию)
-  setHoleSize(size: number): this {
-    this._holeSize = size;
-    this.draw();
-    return this;
-  }
-
-  setHoleCount(horizontal: number, vertical: number): this {
-    this.totalHolesHorizontal = horizontal;
-    this.totalHolesVertical = vertical;
-    this.draw();
-    return this;
-  }
-
-  setColor(color: number): this {
-    this.color = color;
-    this.draw();
-    return this;
-  }
 }
 
 export default Border;

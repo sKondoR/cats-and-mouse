@@ -55,6 +55,14 @@ export class MainScreen extends Container {
     this.mainContainer.hitArea = null;
     this.mainContainer.on("pointermove", this.handlePointerMove, this);
 
+    this.border = new Border(
+      this.mainContainer.width,
+      this.mainContainer.height,
+      this.borderSize,
+      this.holeSize,
+    );
+    this.addChild(this.border);
+
     // Кот
     this.cat = new CatBasik();
     this.cat.scale.set(this.catBaseScale);
@@ -91,13 +99,6 @@ export class MainScreen extends Container {
 
     // Обновление — оптимизировано как стрелочная функция
     this.tickerCallback = () => this.update();
-    this.border = new Border(
-      this.mainContainer.width,
-      this.mainContainer.height,
-      this.borderSize,
-      this.holeSize,
-    );
-    this.addChild(this.border);
   }
 
   /**
@@ -155,11 +156,6 @@ export class MainScreen extends Container {
     this.resizeCarpet();
 
     this.border.resize(width, height);
-    // Обновление графики границы
-    // this.borderGraphic.clear();
-    // this.borderGraphic
-    //   .rect(0, 0, width, height)
-    //   .stroke({ width: this.borderSize, color: "#887849" });
   }
 
   /**
@@ -227,16 +223,54 @@ export class MainScreen extends Container {
     this.cat.update(deltaTime);
     this.mouse.update(deltaTime);
 
-    const screenWidth = engine().screen.width;
-    const screenHeight = engine().screen.height;
-    const margin = this.borderSize; // Prevent from touching exact edge
-    const minX = -screenWidth / 2 + margin;
-    const maxX = screenWidth / 2 - margin;
-    const minY = -screenHeight / 2 + margin;
-    const maxY = screenHeight / 2 - margin;
+     this.constrainMouseToBounds();
+  }
 
-    this.mouse.x = Math.max(minX, Math.min(maxX, this.mouse.x));
-    this.mouse.y = Math.max(minY, Math.min(maxY, this.mouse.y));
+  private constrainMouseToBounds(): void {
+    const { width, height } = engine().screen;
+    const margin = this.borderSize;
+
+    const teleportOffset = 10;
+    const returnOffset = 15;
+
+    const x0 = -width * 0.5;
+    const x1 = width * 0.5;
+    const y0 = -height * 0.5;
+    const y1 = height * 0.5;
+    const minX = x0 + margin;
+    const maxX = x1 - margin;
+    const minY = y0 + margin;
+    const maxY = y1 - margin;
+
+    const xLength = (width - 2 * this.holeSize) / 3;
+    // дырки слева и справа
+    if (!this.isInRange(this.mouse.y, [-this.holeSize/2, this.holeSize])) {
+      this.mouse.x = Math.max(minX, Math.min(maxX, this.mouse.x));
+    }  
+    // мышь забежала в правую дырку
+    if (this.mouse.x > x1 - teleportOffset) {
+      this.mouse.x = x0 + returnOffset;
+    }
+    // мышь забежала в левую дырку
+    if (this.mouse.x < x0 + teleportOffset) {
+      this.mouse.x = x1 - returnOffset;
+    } 
+
+    // дырки сверху и снизу
+    if (
+      !(this.isInRange(this.mouse.x, [-xLength * 0.5 - this.holeSize, -xLength * 0.5]) ||
+      this.isInRange(this.mouse.x, [xLength * 0.5, xLength * 0.5 + this.holeSize]))
+    ) {
+      this.mouse.y = Math.max(minY, Math.min(maxY, this.mouse.y));
+    }
+    // мышь забежала в нижнюю дырку
+    if (this.mouse.y > y1 - teleportOffset) {
+      this.mouse.y = y0 + returnOffset;
+    }
+    // мышь забежала в верхнюю дырку
+    if (this.mouse.y < y0 + teleportOffset) {
+      this.mouse.y = y1 - returnOffset;
+    } 
   }
 
   /**
@@ -284,8 +318,6 @@ export class MainScreen extends Container {
       if (this.followMouseMode) {
         this.showCatchMessage();
         this.handleFollowModeToggle(false);
-        // this.cat.position.set(-this.mainContainer.width * 0.25, 0);
-        // this.mouse.position.set(this.mainContainer.width * 0.75, 0);
       }
     }
   }
@@ -358,7 +390,6 @@ export class MainScreen extends Container {
     // Переключение режима мыши
     const spacePressed = this.keyboard.isPressed(" ");
     if (spacePressed && !this.lastSpacePressed) {
-      console.log("here", !this.followMouseMode);
       this.handleFollowModeToggle(!this.followMouseMode);
     }
     this.lastSpacePressed = spacePressed;
@@ -370,5 +401,9 @@ export class MainScreen extends Container {
   private resizeCarpet(): void {
     if (!this.carpet.texture) return;
     this.carpet.resize(engine().screen.width, engine().screen.height);
+  }
+  
+  private isInRange(value: number, range: [number, number]): boolean {
+    return value >= range[0] && value <= range[1];
   }
 }

@@ -30,7 +30,7 @@ export class Carpet extends Sprite {
 
     const resource = this.texture.source;
     const aspectRatio = resource.width / resource.height;
-    this.height = screenHeight * 0.8;
+    this.height = screenHeight * 0.7;
     this.width = this.height * aspectRatio;
     this.x = screenWidth / 2;
     this.y = screenHeight / 2;
