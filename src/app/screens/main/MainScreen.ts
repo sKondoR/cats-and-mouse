@@ -7,6 +7,7 @@ import { FollowModeButton } from "../../ui/FollowModeButton/FollowModeButton";
 import { CatBasik } from "../../ui/CatBasik/CatBasik";
 import { Carpet } from "../../ui/Carpet/Carpet";
 import { Mouse } from "../../ui/Mouse/Mouse";
+import { Cheese } from "../../ui/Cheese/Cheese";
 import { KeyboardController } from "../../core/input/KeyboardController";
 import Border from "../../ui/Border/Border";
 
@@ -19,14 +20,17 @@ export class MainScreen extends Container {
   private speedControl: SpeedControl;
   private border!: Border;
   private carpet: Carpet;
+  private cheese: Cheese;
+  private isCheeseEaten: boolean = true;
+  private cheeseDelay: number = 2500;
   private readyPromise: Promise<void>;
 
   private lastSpacePressed = false;
   private borderSize: number = 150;
   private holeSize: number = 150;
 
-  private moveSpeed = 3;
-  private catBaseScale = 0.7;
+  private moveSpeed: number = 3;
+  private catBaseScale: number = 0.7;
 
   private isMoving: boolean = false;
   private tickerCallback: () => void;
@@ -62,6 +66,10 @@ export class MainScreen extends Container {
       this.holeSize,
     );
     this.addChild(this.border);
+
+    this.cheese = new Cheese();
+    this.cheese.scale.set(this.catBaseScale);
+    this.mainContainer.addChild(this.cheese);
 
     // Кот
     this.cat = new CatBasik();
@@ -123,6 +131,10 @@ export class MainScreen extends Container {
 
     await Promise.all([animation.finished]);
     engine().ticker.add(this.tickerCallback);
+
+    setTimeout(() => {
+      this.spawnCheese();
+    }, this.cheeseDelay);
   }
 
   /**
@@ -224,6 +236,28 @@ export class MainScreen extends Container {
     this.mouse.update(deltaTime);
 
     this.constrainMouseToBounds();
+
+    // Проверка поедания сыра
+    if (!this.isCheeseEaten) {
+      this.checkCheeseCollision();
+    }
+  }
+
+  private checkCheeseCollision(): void {
+    const dx = this.mouse.x - this.cheese.x;
+    const dy = this.mouse.y - this.cheese.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const hitRadius = 60; // Подбирается под размер мыши и сыра
+
+    if (distance < hitRadius) {
+      this.cheese.alpha = 0;
+      this.isCheeseEaten = true;
+
+      // Новый сыр появится через 2 секунды
+      setTimeout(() => {
+        this.spawnCheese();
+      }, 2000);
+    }
   }
 
   private constrainMouseToBounds(): void {
@@ -413,5 +447,21 @@ export class MainScreen extends Container {
 
   private isInRange(value: number, range: [number, number]): boolean {
     return value >= range[0] && value <= range[1];
+  }
+
+  private spawnCheese(): void {
+    const { width, height } = engine().screen;
+    const padding = 200;
+
+    const x = this.randomRange(-width * 0.5 + padding, width * 0.5 - padding);
+    const y = this.randomRange(-height * 0.5 + padding, height * 0.5 - padding);
+
+    this.cheese.position.set(x, y);
+    this.cheese.alpha = 1;
+    this.isCheeseEaten = false;
+  }
+
+  private randomRange(min: number, max: number): number {
+    return Math.random() * (max - min) + min;
   }
 }
