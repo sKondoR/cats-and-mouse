@@ -1,11 +1,5 @@
 import { animate } from "motion";
-import {
-  Container,
-  FederatedPointerEvent,
-  Graphics,
-  Rectangle,
-  Text,
-} from "pixi.js";
+import { Container, FederatedPointerEvent, Rectangle, Text } from "pixi.js";
 
 import { engine } from "../../getEngine";
 import { SpeedControl } from "../../ui/SpeedControl/SpeedControl";
@@ -14,6 +8,7 @@ import { CatBasik } from "../../ui/CatBasik/CatBasik";
 import { Carpet } from "../../ui/Carpet/Carpet";
 import { Mouse } from "../../ui/Mouse/Mouse";
 import { KeyboardController } from "../../core/input/KeyboardController";
+import Border from "../../ui/Border/Border";
 
 export class MainScreen extends Container {
   public static assetBundles = ["main"];
@@ -22,12 +17,13 @@ export class MainScreen extends Container {
   private mouse: Mouse;
   private followModeButton: FollowModeButton;
   private speedControl: SpeedControl;
-  private borderGraphic: Graphics;
+  private border!: Border;
   private carpet: Carpet;
   private readyPromise: Promise<void>;
 
   private lastSpacePressed = false;
-  private borderSize: number = 100;
+  private borderSize: number = 150;
+  private holeSize: number = 150;
 
   private moveSpeed = 3;
   private catBaseScale = 0.7;
@@ -69,10 +65,6 @@ export class MainScreen extends Container {
     this.mouse.scale.set(this.catBaseScale);
     this.mainContainer.addChild(this.mouse);
 
-    // Графика границы и линии земли
-    this.borderGraphic = new Graphics();
-    this.addChild(this.borderGraphic);
-
     // Кнопка режима преследования мыши
     this.followModeButton = new FollowModeButton();
     this.addChild(this.followModeButton);
@@ -99,6 +91,13 @@ export class MainScreen extends Container {
 
     // Обновление — оптимизировано как стрелочная функция
     this.tickerCallback = () => this.update();
+    this.border = new Border(
+      this.mainContainer.width,
+      this.mainContainer.height,
+      this.borderSize,
+      this.holeSize,
+    );
+    this.addChild(this.border);
   }
 
   /**
@@ -130,6 +129,37 @@ export class MainScreen extends Container {
    */
   public async hide(): Promise<void> {
     engine().ticker.remove(this.tickerCallback);
+    this.border.destroy();
+  }
+
+  /**
+   * Изменяет размеры элементов при изменении окна.
+   */
+  public resize(width: number, height: number): void {
+    const centerX = width * 0.5;
+    const centerY = height * 0.5;
+
+    this.mainContainer.position.set(centerX, centerY);
+    this.mainContainer.hitArea = new Rectangle(
+      -centerX,
+      -centerY,
+      width,
+      height,
+    );
+
+    this.cat.position.set(-width * 0.25, 0);
+    this.mouse.position.set(width * 0.25, 0);
+
+    this.followModeButton.resize(width);
+    this.speedControl.resize(width);
+    this.resizeCarpet();
+
+    this.border.resize(width, height);
+    // Обновление графики границы
+    // this.borderGraphic.clear();
+    // this.borderGraphic
+    //   .rect(0, 0, width, height)
+    //   .stroke({ width: this.borderSize, color: "#887849" });
   }
 
   /**
@@ -332,35 +362,6 @@ export class MainScreen extends Container {
       this.handleFollowModeToggle(!this.followMouseMode);
     }
     this.lastSpacePressed = spacePressed;
-  }
-
-  /**
-   * Изменяет размеры элементов при изменении окна.
-   */
-  public resize(width: number, height: number): void {
-    const centerX = width * 0.5;
-    const centerY = height * 0.5;
-
-    this.mainContainer.position.set(centerX, centerY);
-    this.mainContainer.hitArea = new Rectangle(
-      -centerX,
-      -centerY,
-      width,
-      height,
-    );
-
-    this.cat.position.set(-width * 0.25, 0);
-    this.mouse.position.set(width * 0.25, 0);
-
-    this.followModeButton.resize(width);
-    this.speedControl.resize(width);
-    this.resizeCarpet();
-
-    // Обновление графики границы
-    this.borderGraphic.clear();
-    this.borderGraphic
-      .rect(0, 0, width, height)
-      .stroke({ width: this.borderSize, color: "#887849" });
   }
 
   /**
