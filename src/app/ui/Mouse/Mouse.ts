@@ -3,7 +3,9 @@ import { Sprite, Container, Assets } from "pixi.js";
 export class Mouse extends Container {
   private bodyParts: Record<string, Sprite> = {};
   private readonly texturePaths: Record<string, string> = {
-    body: "main/mouse.png",
+    arms: "main/mouse/arms.png",
+    tail: "main/mouse/tail.png",
+    body: "main/mouse/body.png",
   };
   private readyPromise: Promise<void>;
 
@@ -13,6 +15,8 @@ export class Mouse extends Container {
 
   private isMoving: boolean = false;
   private rotationSpeed: number = 0.1;
+  private tailAnimationOffset: number = 0;
+  private armsAnimationOffset: number = 0;
 
   private targetX: number = 0;
   private targetY: number = 0;
@@ -22,8 +26,9 @@ export class Mouse extends Container {
     super();
 
     this.bodyParts = {
+      arms: new Sprite(),
+      tail: new Sprite(),
       body: new Sprite(),
-      // tail: new Sprite(),
     };
 
     this.readyPromise = this.loadTextures();
@@ -36,14 +41,16 @@ export class Mouse extends Container {
   private async loadTextures(): Promise<void> {
     try {
       // Загружаем текстуры один раз, где возможно
-      const [body] = await Promise.all([
+      const [arms, tail, body] = await Promise.all([
+        Assets.load(this.texturePaths.arms),
+        Assets.load(this.texturePaths.tail),
         Assets.load(this.texturePaths.body),
-        // Assets.load(this.texturePaths.tail),
       ]);
 
       // Применяем текстуры
+      this.bodyParts.arms.texture = arms;
+      this.bodyParts.tail.texture = tail;
       this.bodyParts.body.texture = body;
-      // this.bodyParts.tail.texture = tail;
 
       this.draw();
       console.log("Mouse textures loaded");
@@ -62,12 +69,18 @@ export class Mouse extends Container {
   }
 
   private setupDisplayHierarchy(): void {
-    const { body } = this.bodyParts;
+    const { arms, body, tail } = this.bodyParts;
+    this.addChild(arms);
+    this.addChild(tail);
     this.addChild(body);
   }
 
   private async draw() {
-    const { body } = this.bodyParts;
+    const { arms, body, tail } = this.bodyParts;
+    arms.anchor.set(0.5, 0.5);
+    arms.position.set(-10, 5);
+    tail.anchor.set(1, 0.5);
+    tail.position.set(-55, 23);
     body.anchor.set(0.5, 0.5);
     body.position.set(0, 0);
   }
@@ -96,6 +109,14 @@ export class Mouse extends Container {
       this.x += Math.cos(angle) * speed;
       this.y += Math.sin(angle) * speed;
 
+      const swingAmount = 0.5;
+      const swingAmount2 = 0.15;
+      this.tailAnimationOffset += 0.05 * deltaTime;
+      this.armsAnimationOffset += 0.1 * deltaTime;
+      this.bodyParts.tail.rotation =
+        Math.sin(this.tailAnimationOffset) * swingAmount;
+      this.bodyParts.arms.rotation =
+        Math.sin(this.armsAnimationOffset) * swingAmount2;
       // Update rotation to face direction of movement
       const angleDifference = angle - this.rotation;
       const normalizedDelta =
