@@ -22,6 +22,9 @@ export class MainScreen extends Container {
   private carpet: Carpet;
   private cheese: Cheese;
   private isCheeseEaten: boolean = true;
+  private cheeseCountIcon: Cheese;
+  private cheeseCount: number = 0; 
+  private cheeseCountText: Text;
   private cheeseDelay: number = 2500;
   private readyPromise: Promise<void>;
 
@@ -57,6 +60,7 @@ export class MainScreen extends Container {
 
     this.mainContainer.eventMode = "static";
     this.mainContainer.hitArea = null;
+    this.mainContainer.sortableChildren = true; 
     this.mainContainer.on("pointermove", this.handlePointerMove, this);
 
     this.border = new Border(
@@ -65,7 +69,8 @@ export class MainScreen extends Container {
       this.borderSize,
       this.holeSize,
     );
-    this.addChild(this.border);
+    this.border.zIndex = 50;
+    this.mainContainer.addChild(this.border);
 
     this.cheese = new Cheese();
     this.cheese.scale.set(this.catBaseScale);
@@ -97,6 +102,21 @@ export class MainScreen extends Container {
     this.catchText.anchor.set(0.5);
     this.catchText.alpha = 0;
     this.mainContainer.addChild(this.catchText);
+
+    this.cheeseCountIcon = new Cheese();
+    this.cheeseCountIcon.zIndex = 100; 
+    this.cheeseCountIcon.scale.set(this.catBaseScale);
+    this.mainContainer.addChild(this.cheeseCountIcon);
+    this.cheeseCountText = new Text(`${this.cheeseCount}`, {
+      fontFamily: "Arial",
+      fontSize: 60,
+      fill: "#333333",
+      fontWeight: "bold",
+      align: "center",
+    });
+    this.cheeseCountText.zIndex = 100; 
+    this.cheeseCountText.anchor.set(0.5);
+    this.mainContainer.addChild(this.cheeseCountText);
 
     // Управление скоростью
     this.speedControl = new SpeedControl();
@@ -159,6 +179,7 @@ export class MainScreen extends Container {
       width,
       height,
     );
+    this.border.resize(width, height);
 
     this.cat.position.set(-width * 0.25, 0);
     this.mouse.position.set(width * 0.25, 0);
@@ -167,7 +188,8 @@ export class MainScreen extends Container {
     this.speedControl.resize(width);
     this.resizeCarpet();
 
-    this.border.resize(width, height);
+    this.cheeseCountIcon.position.set(-width * 0.5 + 10, -height * 0.5 + 10);
+    this.cheeseCountText.position.set(-width * 0.5 + 100, -height * 0.5 + 40);
   }
 
   /**
@@ -198,6 +220,8 @@ export class MainScreen extends Container {
 
       this.cat.position.set(-screenWidth * 0.25, 0);
       this.mouse.position.set(screenWidth * 0.25, 0);
+      this.cheeseCount = 0;
+      this.cheeseCountText.text = `${this.cheeseCount}`;
     } else {
       this.keyboard.start();
       this.mouse.stopMoving();
@@ -253,6 +277,8 @@ export class MainScreen extends Container {
       this.cheese.alpha = 0;
       this.isCheeseEaten = true;
 
+      this.cheeseCount++;
+      this.cheeseCountText.text = `${this.cheeseCount}`;
       // Новый сыр появится через 2 секунды
       setTimeout(() => {
         this.spawnCheese();
@@ -308,10 +334,12 @@ export class MainScreen extends Container {
     // мышь забежала в нижнюю дырку
     if (this.mouse.y > y1 - teleportOffset) {
       this.mouse.y = y0 + returnOffset;
+      this.mouse.x = -this.mouse.x;
     }
     // мышь забежала в верхнюю дырку
     if (this.mouse.y < y0 + teleportOffset) {
       this.mouse.y = y1 - returnOffset;
+      this.mouse.x = -this.mouse.x;
     }
   }
 

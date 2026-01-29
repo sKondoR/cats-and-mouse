@@ -28,10 +28,10 @@ export class Border extends Graphics {
   public draw(): void {
     this.clear();
 
-    const left = 0;
-    const right = this._width;
-    const top = 0;
-    const bottom = this._height;
+    const left = -this._width * 0.5;
+    const right = this._width * 0.5;
+    const top = -this._height * 0.5;
+    const bottom = this._height * 0.5;
 
     // Верхняя и нижняя — по 2 дырки
     this.drawDashedLine(left, top, right, top, this.totalHolesHorizontal);
