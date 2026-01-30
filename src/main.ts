@@ -1,6 +1,7 @@
 import { setEngine } from "./app/getEngine";
 import { LoadScreen } from "./app/screens/LoadScreen";
 import { MainScreen } from "./app/screens/main/MainScreen";
+import { WelcomeScreen } from "./app/screens/WelcomeScreen";
 import { CreationEngine } from "./engine/engine";
 /**
  * Importing these modules will automatically register there plugins with the engine.
@@ -19,7 +20,9 @@ setEngine(engine);
     resizeOptions: { minWidth: 768, minHeight: 1024, letterbox: false },
   });
 
-  // Show the load screen
+  // Show the welcome screen first
+  await engine.navigation.showScreen(WelcomeScreen);
+  // Then show the load screen
   await engine.navigation.showScreen(LoadScreen);
   // Show the main screen once the load screen is dismissed
   await engine.navigation.showScreen(MainScreen);
