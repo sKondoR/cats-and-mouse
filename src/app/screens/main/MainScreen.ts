@@ -19,25 +19,25 @@ export class MainScreen extends Container {
   public static assetBundles = ["main"];
   
   // Core containers
-  public mainContainer: Container;
+  public mainContainer!: Container;
   
   // Game elements
-  private cat: CatBasik;
-  private mouse: Mouse;
-  private cheese: Cheese;
-  private carpet: Carpet;
+  private cat!: CatBasik;
+  private mouse!: Mouse;
+  private cheese!: Cheese;
+  private carpet!: Carpet;
   private border!: Border;
   
   // UI components
-  private followModeButton: FollowModeButton;
-  private speedControl: SpeedControl;
-  private catchText: Text;
-  private cheeseCountIcon: Cheese;
-  private cheeseCountText: Text;
+  private followModeButton!: FollowModeButton;
+  private speedControl!: SpeedControl;
+  private catchText!: Text;
+  private cheeseCountIcon!: Cheese;
+  private cheeseCountText!: Text;
   
   // Game state
   private keyboard = new KeyboardController();
-  private readyPromise: Promise<void>;
+  private readyPromise!: Promise<void>;
   
   // Configuration constants
   private readonly CONFIG = {
@@ -53,7 +53,7 @@ export class MainScreen extends Container {
     TELEPORT_OFFSET: 10,
     RETURN_OFFSET: 15
   };
-  
+
   // State variables
   private isCheeseEaten: boolean = true;
   private cheeseCount: number = 0;
@@ -62,10 +62,8 @@ export class MainScreen extends Container {
   private followMouseMode: boolean = false;
   private targetX: number = 0;
   private targetY: number = 0;
+  private tickerCallback!: () => void;
   
-  // Ticker callback
-  private tickerCallback: () => void;
-
   constructor() {
     super();
     
@@ -164,12 +162,15 @@ export class MainScreen extends Container {
    * Creates the "caught" text element.
    */
   private createCatchText(): Text {
-    const text = new Text("поймал!", {
-      fontFamily: "Arial",
-      fontSize: 60,
-      fill: "#333333",
-      fontWeight: "bold",
-      align: "center",
+    const text = new Text({
+      text: "поймал!",
+      style: {
+        fontFamily: "Arial",
+        fontSize: 60,
+        fill: "#333333",
+        fontWeight: "bold",
+        align: "center",
+      }
     });
     text.anchor.set(0.5);
     text.alpha = 0;
@@ -652,3 +653,4 @@ export class MainScreen extends Container {
     return Math.random() * (max - min) + min;
   }
 }
+
